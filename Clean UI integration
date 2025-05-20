@@ -1,0 +1,103 @@
+ Step 1: Install Streamlit
+bash
+Copy
+Edit
+
+pip install streamlit
+
+Step 2: Create app.py (Frontend + Backend Combined)
+import streamlit as st
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# ----------------------------
+# Load or define your dataset
+# ----------------------------
+data = {
+    'title': [
+        'The Matrix',
+        'John Wick',
+        'Inception',
+        'The Social Network',
+        'The Terminator',
+        'Interstellar',
+        'The Godfather'
+    ],
+    'description': [
+        'A computer hacker learns about the true nature of reality and his role in the war against its controllers.',
+        'An ex-hitman comes out of retirement to track down the gangsters that took everything from him.',
+        'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.',
+        'The story of Facebook’s founding and the legal battles that followed.',
+        'A cyborg assassin is sent back in time to kill the mother of a future resistance leader.',
+        'A team of explorers travel through a wormhole in space in an attempt to ensure humanity’s survival.',
+        'The aging patriarch of an organized crime dynasty transfers control to his reluctant son.'
+    ]
+}
+
+df = pd.DataFrame(data)
+
+# Vectorize descriptions
+tfidf = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf.fit_transform(df['description'])
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+# Recommendation logic
+def get_recommendations(title):
+    try:
+        idx = df.index[df['title'] == title][0]
+    except IndexError:
+        return []
+
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:6]
+    movie_indices = [i[0] for i in sim_scores]
+    return df['title'].iloc[movie_indices].tolist()
+
+# ----------------------------
+# Streamlit UI
+# ----------------------------
+st.set_page_config(page_title="🎬 AI Movie Recommender", layout="centered")
+
+st.title("🎥 AI-Powered Movie Recommendation System")
+st.write("Select a movie below to get recommendations:")
+
+# Dropdown for movie selection
+selected_movie = st.selectbox("Choose a movie", df['title'].tolist())
+
+if st.button("Recommend"):
+    recommendations = get_recommendations(selected_movie)
+    if recommendations:
+        st.subheader("Recommended Movies:")
+        for i, rec in enumerate(recommendations, start=1):
+            st.write(f"{i}. {rec}")
+    else:
+        st.warning("No recommendations found.")
+
+st.markdown("---")
+st.caption("Built with ❤️ using Streamlit & scikit-learn.")
+
+Step 3: Run the App
+
+streamlit run app.py
+Clean UI Features
+Dropdown to select a movie
+
+Dynamic output of top 5 similar movies
+
+Minimalist layout, centered content
+
+Clear headings and markdown formatting
+
+Works great on web and mobile browsers
+
+Optional Upgrades
+Add poster images using TMDB API
+
+Use MovieLens dataset for larger scale
+
+Include ratings, genres, or trailer links
+
+Deploy to Streamlit Cloud or Render
+
