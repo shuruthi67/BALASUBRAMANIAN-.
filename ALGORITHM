@@ -1,0 +1,70 @@
+1. TF-IDF Vectorization
+TF-IDF (Term Frequency–Inverse Document Frequency) is a statistical measure used to evaluate how important a word is to a document in a collection.
+
+This method converts each movie’s plot description into a numerical vector representation.
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = vectorizer.fit_transform(movie_descriptions)
+stop_words='english' removes common words like "the", "is", "and", etc., which don't carry meaningful information.
+
+ Cosine Similarity
+Once all descriptions are vectorized, we compute cosine similarity between the vectors.
+
+Cosine similarity measures the angle between two vectors in high-dimensional space:
+
+cosine_similarity
+(
+𝐴
+,
+𝐵
+)
+=
+𝐴
+⋅
+𝐵
+∣
+∣
+𝐴
+∣
+∣
+⋅
+∣
+∣
+𝐵
+∣
+∣
+cosine_similarity(A,B)= 
+∣∣A∣∣⋅∣∣B∣∣
+A⋅B
+​
+ 
+A similarity score of 1.0 means the movies are identical in content; 0.0 means they’re entirely different.
+
+python
+Copy
+Edit
+from sklearn.metrics.pairwise import cosine_similarity
+
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+ Recommendation Logic
+When a user selects a movie, the system:
+
+Finds the index of that movie.
+
+Retrieves its similarity scores with all other movies.
+
+Sorts these scores in descending order.
+
+Returns the top N most similar movies (excluding the selected one).
+
+python
+Copy
+Edit
+def get_recommendations(title):
+    idx = df.index[df['title'] == title][0]
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:6]
+    movie_indices = [i[0] for i in sim_scores]
+    return df['title'].iloc[movie_indices]
