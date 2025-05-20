@@ -1,0 +1,63 @@
+ Install Required Libraries
+pip install pandas scikit-learn
+
+Python Code: Movie Recommendation System
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Sample movie dataset (you can replace this with a CSV file)
+data = {
+    'title': [
+        'The Matrix',
+        'John Wick',
+        'Inception',
+        'The Social Network',
+        'The Terminator',
+        'Interstellar',
+        'The Godfather'
+    ],
+    'description': [
+        'A computer hacker learns about the true nature of reality and his role in the war against its controllers.',
+        'An ex-hitman comes out of retirement to track down the gangsters that took everything from him.',
+        'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.',
+        'The story of Facebook’s founding and the legal battles that followed.',
+        'A cyborg assassin is sent back in time to kill the mother of a future resistance leader.',
+        'A team of explorers travel through a wormhole in space in an attempt to ensure humanity’s survival.',
+        'The aging patriarch of an organized crime dynasty transfers control to his reluctant son.'
+    ]
+}
+
+# Load data into DataFrame
+df = pd.DataFrame(data)
+
+# Convert descriptions to TF-IDF vectors
+vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = vectorizer.fit_transform(df['description'])
+
+# Compute cosine similarity matrix
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+# Function to get recommendations
+def get_recommendations(title, cosine_sim=cosine_sim, df=df):
+    # Get index of the movie that matches the title
+    idx = df.index[df['title'] == title][0]
+
+    # Get pairwise similarity scores
+    sim_scores = list(enumerate(cosine_sim[idx]))
+
+    # Sort movies based on similarity score
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+    # Get scores of 5 most similar movies (excluding itself)
+    sim_scores = sim_scores[1:6]
+
+    # Get movie indices
+    movie_indices = [i[0] for i in sim_scores]
+
+    # Return the top 5 most similar movies
+    return df['title'].iloc[movie_indices]
+
+# Example usage
+recommended = get_recommendations('Inception')
+print("Recommended Movies:\n", recommended)
